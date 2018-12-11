@@ -1,0 +1,19 @@
+#!/bin/bash
+
+TMP1=""
+DOMAIN="$1"
+
+if [ -z "$1" ]; then
+        read -p 'Enter Domain Name :' DOMAIN
+fi
+
+echo Pulling Thin WhoIs Records for $DOMAIN
+
+TMP1=$(whois $DOMAIN | grep "Registrar WHOIS Server:" | cut -d ":" -f 2)
+
+if [ -z "$TMP1" ]; then
+        echo "$DOMAIN is not valid"
+else
+        echo Found Thick Whois Server $TMP1
+        whois $DOMAIN -h $TMP1 | grep ">>>" -B 100
+fi
