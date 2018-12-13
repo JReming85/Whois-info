@@ -10,6 +10,7 @@ whois-info website.com
 can also now accept email addresses & websites i.e.
 
 whois-info user@testemail.com
+
 whois-info https://github.com/JReming85/Whois-info/
 
 as it will strip it down to the domain testemail.com or github.com
