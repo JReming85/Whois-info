@@ -1,24 +1,48 @@
 #!/bin/bash
 
+### Presetting / Cleaning Used Variabled
 TMP1=""
 DOMAIN1="$1"
+DOMAIN=""
+SUBDOMAIN=""
+break="##############################################################"
 
+## Checking for user input; if none prompt
 if [ -z "$1" ]; then
         read -p 'Enter Domain Name :' DOMAIN1
 fi
 echo Attempting to clean $DOMAIN1
 
-DOMAIN=$(echo $DOMAIN1 | sed 's|http://||g;s|https://||g;s|/||g;s|^.*@||g')
+## Strip user input to a domain/subdomain
+DOMAIN=$(echo $DOMAIN1 | sed 's|http://||g;s|https://||g;s|/.*||g;s|^.*@||g;s|www.||g')
 
-#DOMAIN=${DOMAIN1//[^a-zA-Z0-9_\.]/}
+## Check for and remove any subdomains
+if [[ $DOMAIN =~ ^[a-zA-Z0-9]+\.[a-zA-Z0-9]+\.[a-zA-Z0-9]+$ ]]; then
+        SUBDOMAIN=$DOMAIN
+        DOMAIN=$(expr match $DOMAIN '.*\.\(.*\..*\)')
+fi
 
-echo Pulling Thin WhoIs Records for $DOMAIN
+## Convert to lowercase because I can
+DOMAIN=$(echo -n $DOMAIN | tr A-Z a-z)
+echo $break &&  echo $break && echo Pulling Thin WhoIs Records for $DOMAIN
 
+## Query think whois record for the local registrar
 TMP1=$(whois $DOMAIN | grep "Registrar WHOIS Server:" | cut -d ":" -f 2)
 
+## Check if domain is registered
 if [ -z "$TMP1" ]; then
         echo "$DOMAIN has no record or is not currently registered!"
 else
-        echo Found Thick Whois Server $TMP1
+## Query thick whois record and strip excess data
+        echo $break && echo $break && echo Found Thick Whois Server $TMP1
         whois $DOMAIN -h $TMP1 | grep ">>>" -B 100
+        echo $break && echo $break 
+        if [ -z "$SUBDOMAIN" ]; then
+                echo '### MX Dig Report for $SUBDOMAIN'
+                dig MX $SUBDOMAIN | grep $DOMAIN
+        else
+                echo '### MX Dig Report for $DOMAIN'
+                dig MX $DOMAIN | grep $DOMAIN
+        fi
+echo $break && echo $break
 fi
