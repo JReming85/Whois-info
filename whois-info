@@ -1,18 +1,23 @@
 #!/bin/bash
 
 TMP1=""
-DOMAIN="$1"
+DOMAIN1="$1"
 
 if [ -z "$1" ]; then
-        read -p 'Enter Domain Name :' DOMAIN
+        read -p 'Enter Domain Name :' DOMAIN1
 fi
+echo Attempting to clean $DOMAIN1
+
+DOMAIN=$(echo $DOMAIN1 | sed 's|http://||g;s|https://||g;s|/||g;s|^.*@||g')
+
+#DOMAIN=${DOMAIN1//[^a-zA-Z0-9_\.]/}
 
 echo Pulling Thin WhoIs Records for $DOMAIN
 
 TMP1=$(whois $DOMAIN | grep "Registrar WHOIS Server:" | cut -d ":" -f 2)
 
 if [ -z "$TMP1" ]; then
-        echo "$DOMAIN is not valid"
+        echo "$DOMAIN has no record or is not currently registered!"
 else
         echo Found Thick Whois Server $TMP1
         whois $DOMAIN -h $TMP1 | grep ">>>" -B 100
