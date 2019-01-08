@@ -4,7 +4,8 @@
 TMP1=""
 DOMAIN1="$1"
 DOMAIN=""
-SUBDOMAIN=""
+#SUBDOMAIN=""
+RERUN="y"
 break="##############################################################"
 
 ## Checking for user input; if none prompt
@@ -18,7 +19,7 @@ DOMAIN=$(echo $DOMAIN1 | sed 's|http://||g;s|https://||g;s|/.*||g;s|^.*@||g;s|ww
 
 ## Check for and remove any subdomains
 if [[ $DOMAIN =~ ^[a-zA-Z0-9]+\.[a-zA-Z0-9]+\.[a-zA-Z0-9]+$ ]]; then
-        SUBDOMAIN=$DOMAIN
+        SUBDOMAIN=$(echo $DOMAIN)
         DOMAIN=$(expr match $DOMAIN '.*\.\(.*\..*\)')
 fi
 
@@ -37,12 +38,13 @@ else
         echo $break && echo $break && echo Found Thick Whois Server $TMP1
         whois $DOMAIN -h $TMP1 | grep ">>>" -B 100
         echo $break && echo $break 
-        if [ -z "$SUBDOMAIN" ]; then
-                echo '### MX Dig Report for $SUBDOMAIN'
-                dig MX $SUBDOMAIN | grep $DOMAIN
-        else
-                echo '### MX Dig Report for $DOMAIN'
-                dig MX $DOMAIN | grep $DOMAIN
-        fi
-echo $break && echo $break
+        echo "### MX Dig Report for " $DOMAIN
+        dig MX $DOMAIN | grep $DOMAIN
+        echo $break && echo $break
+fi
+
+read -p 'Would you like to check another domain? (Y/n)' RERUN
+RERUN=$(echo -n $RERUN | tr A-Z a-z)
+if [[ $RERUN == 'y' || $RERUN == '' ]]; then
+        $(basename $0) && exit
 fi
